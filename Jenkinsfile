@@ -26,11 +26,13 @@ node {
 	
  
 	
-    	stage('Authenticate Devhub') {
-            sh "sfdx force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} \
---jwtkeyfile ${JWT_KEY_CRED_ID} --username ${HUB_ORG} \
---setdefaultdevhubusername --setalias myhuborg"
-        }
+    	      stage('authorisatiom') {
+            if (isUnix()) {
+                rc = sh returnStatus: true, script: "${toolbelt} force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
+            }else{
+                 rc = bat returnStatus: true, script: "\"${toolbelt}\" force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile \"${jwt_key_file}\" --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
+            }
+            if (rc != 0) { error 'hub org authorization failed' }
         
         stage('Create Scratch Org') {
             // need to pull out assigned username
